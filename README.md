@@ -20,7 +20,7 @@ Kaayko is an intelligent system that analyzes weather conditions and predicts pa
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/kaayko-paddle-intelligence.git
+git clone https://github.com/tommyvercetti76/kaayko-paddle-intelligence.git
 cd kaayko-paddle-intelligence
 
 # Install dependencies
@@ -111,7 +111,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md).
 ### Development Setup
 ```bash
 # Clone and setup development environment
-git clone https://github.com/your-username/kaayko-paddle-intelligence.git
+git clone https://github.com/tommyvercetti76/kaayko-paddle-intelligence.git
 cd kaayko-paddle-intelligence
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -135,8 +135,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 **Support**
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/your-username/kaayko-paddle-intelligence/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/kaayko-paddle-intelligence/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/tommyvercetti76/kaayko-paddle-intelligence/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/tommyvercetti76/kaayko-paddle-intelligence/discussions)
 - 📧 **Email**: support@kaayko.ai
 
 ---
