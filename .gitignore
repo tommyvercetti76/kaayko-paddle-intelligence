@@ -146,3 +146,4 @@ models/
 .env.local
 .env.production
 api_keys.txt
+.env

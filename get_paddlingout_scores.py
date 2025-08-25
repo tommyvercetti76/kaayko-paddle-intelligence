@@ -2,6 +2,7 @@
 """
 Get current paddle scores for YOUR paddlingOut locations ONLY - BEAUTIFUL OUTPUT
 """
+import os
 import joblib
 import numpy as np
 import requests
@@ -23,7 +24,7 @@ def get_paddlingout_lakes():
 
 def get_weather(lat, lon):
     """Get current weather for coordinates"""
-    url = f"https://api.weatherapi.com/v1/current.json?key=a0ede903980f45c4a27183708252308&q={lat},{lon}&aqi=no"
+    url = f"https://api.weatherapi.com/v1/current.json?key={os.environ.get("WEATHER_API_KEY", "YOUR_API_KEY")}&q={lat},{lon}&aqi=no"
     response = requests.get(url).json()
     data = response['current']
     

@@ -5,6 +5,7 @@ Fetches actual lakes from your paddlingOut API for validation
 """
 
 import pandas as pd
+import os
 import numpy as np
 import joblib
 import json
@@ -15,7 +16,7 @@ from datetime import datetime
 
 # Your paddlingOut API endpoints
 PADDLINGOUT_API_URL = "https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut"
-API_KEY = "a0ede903980f45c4a27183708252308"
+API_KEY = os.environ.get("WEATHER_API_KEY", "YOUR_API_KEY")
 
 def load_trained_model():
     """Load the trained Kaayko model"""
