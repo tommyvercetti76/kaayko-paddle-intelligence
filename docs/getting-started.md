@@ -87,7 +87,7 @@ router = KaaykoModelRouter()
 print('Advanced inference system loaded successfully!')
 "
 
-# Monitor training progress (if running)
+# View system logs
 tail -f logs/production_training.log
 ```
 
