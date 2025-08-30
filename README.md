@@ -28,7 +28,7 @@ Kaayko is a sophisticated AI system that analyzes weather conditions and predict
 - **[kaayko/predictor.py](kaayko/predictor.py)** - Main prediction orchestrator
 - **[kaayko/models.py](kaayko/models.py)** - Professional data validation schemas  
 - **[kaayko/kaayko_inference_system.py](kaayko/kaayko_inference_system.py)** - Advanced hierarchical inference
-- **[models/kaayko_paddle_model.pkl](models/)** - 99.28% accurate production model (49.3MB)
+- **[models/ (production model excluded from repo)](models/)** - 99.28% accurate production model (49.3MB)
 
 ### Data Collection Infrastructure
 - **[data-collection/README.md](data-collection/README.md)** - Complete collection system documentation

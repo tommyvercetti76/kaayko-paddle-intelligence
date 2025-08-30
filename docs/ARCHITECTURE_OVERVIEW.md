@@ -8,7 +8,7 @@ Kaayko Paddle Intelligence is a comprehensive AI system built on **260+ million 
 
 ### 1. Prediction Engine
 **[kaayko/predictor.py](../kaayko/predictor.py)** - Primary prediction orchestrator
-- Loads production model: [models/kaayko_paddle_model.pkl](../models/kaayko_paddle_model.pkl)
+- Loads production model: [models/ (production model excluded from repo)](../models/ (production model excluded from repo))
 - Interfaces with [kaayko/models.py](../kaayko/models.py) for data validation
 - Delivers 99.28% accurate predictions with sub-100ms latency
 
@@ -35,7 +35,7 @@ class WeatherInput(BaseModel):
 ### 3. Production Models
 
 #### Primary Model
-**File:** [models/kaayko_paddle_model.pkl](../models/kaayko_paddle_model.pkl) (49.3MB)
+**File:** [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) (49.3MB)
 - **Algorithm:** RandomForestRegressor (50 trees, 15 features)
 - **Performance:** 99.28% accuracy on production workloads
 - **Training Data:** Optimized subset of 260+ million data points
@@ -171,8 +171,8 @@ Production Data Sources:
         └─────────┬──────────┘
                   │
     ┌─────────────▼──────────────┐
-    │ Production Deployment      │ ←── [models/kaayko_paddle_model.pkl]
-    │ 49.3MB Model              │     [kaayko/predictor.py]
+    │ Production Deployment      │ ←── [models/ (production model excluded from repo)]
+    │ 49.3MB Production Model (local only)              │     [kaayko/predictor.py]
     │ Sub-100ms Inference       │
     └─────────────┬──────────────┘
                   │
@@ -188,7 +188,7 @@ Production Data Sources:
 ```
 Geographic Model Routing:
 ┌─────────────────────────────────────────┐
-│ Global Baseline Model                   │ ←── [models/kaayko_paddle_model.pkl]
+│ Global Baseline Model                   │ ←── [models/ (production model excluded from repo)]
 │ 99.28% Accuracy                        │     RandomForest (50 trees)
 │ 15 Features, 49.3MB                    │
 └─────────────────┬───────────────────────┘
@@ -249,7 +249,7 @@ export KAAYKO_RPM_LIMIT="100"
 - [kaayko/04_inference_router.py](../kaayko/04_inference_router.py) - Geographic intelligence
 
 **Data & Models:**
-- [models/kaayko_paddle_model.pkl](../models/kaayko_paddle_model.pkl) - Production model (99.28%)
+- [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) - Production model (99.28%)
 - [models/model_metadata.json](../models/model_metadata.json) - Model specifications
 - [kaayko/models.py](../kaayko/models.py) - Data validation schemas
 

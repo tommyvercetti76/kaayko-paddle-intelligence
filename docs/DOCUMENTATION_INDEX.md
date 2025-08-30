@@ -20,7 +20,7 @@ Complete cross-referenced documentation for **Kaayko Paddle Intelligence** - pro
 
 ### Getting Started
 - **[getting-started.md](getting-started.md)** - Professional quick-start guide
-  - References [models/kaayko_paddle_model.pkl](../models/kaayko_paddle_model.pkl)
+  - References [models/ (production model excluded from repo)](../models/ (production model excluded from repo))
   - Links to [kaayko/models.py](../kaayko/models.py) for data validation
   - Production configuration examples
 
@@ -42,7 +42,7 @@ Complete cross-referenced documentation for **Kaayko Paddle Intelligence** - pro
 ### Core Prediction System
 ```
 kaayko/predictor.py                 ←── Main prediction interface (99.28% accuracy)
-├── models/kaayko_paddle_model.pkl  ←── Production model (49.3MB)
+├── models/ (production model excluded from repo)  ←── Production model (49.3MB)
 ├── kaayko/models.py                ←── Data validation schemas
 └── kaayko/exceptions.py            ←── Enterprise error handling
 ```
@@ -100,7 +100,7 @@ tests/test_predictor.py                    ←── Core prediction validation
 ## 📊 Performance Specifications
 
 ### Model Performance
-- **Primary Model:** 99.28% accuracy ([models/kaayko_paddle_model.pkl](../models/kaayko_paddle_model.pkl))
+- **Primary Model:** 99.28% accuracy ([models/ (production model excluded from repo)](../models/ (production model excluded from repo)))
 - **Ensemble Performance:** 97.4% R² ([training/advanced/kaayko_production_training_suite.py](../training/advanced/kaayko_production_training_suite.py))
 - **Response Time:** Sub-100ms inference
 - **Data Scale:** 260+ million training points
@@ -123,7 +123,7 @@ tests/test_predictor.py                    ←── Core prediction validation
 - [kaayko/04_inference_router.py](../kaayko/04_inference_router.py) → Geographic logic
 
 **Data & Models:**
-- [models/kaayko_paddle_model.pkl](../models/kaayko_paddle_model.pkl) → Production model
+- [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) → Production model
 - [models/model_metadata.json](../models/model_metadata.json) → Model specs
 - [kaayko/models.py](../kaayko/models.py) → Validation schemas
 
@@ -141,7 +141,7 @@ tests/test_predictor.py                    ←── Core prediction validation
 
 **Production Ready:**
 - [kaayko/predictor.py](../kaayko/predictor.py) - Live prediction interface
-- [models/kaayko_paddle_model.pkl](../models/kaayko_paddle_model.pkl) - 99.28% accurate model
+- [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) - 99.28% accurate model
 - [kaayko/models.py](../kaayko/models.py) - Production data validation
 
 **Development & Training:**
