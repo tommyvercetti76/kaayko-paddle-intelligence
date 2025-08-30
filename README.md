@@ -74,6 +74,14 @@ Built on comprehensive weather datasets:
 - **Multi-year historical data** for robust training
 - **Real-time weather integration** capability
 
+## 🌊 **Data Collection System**
+
+Professional-grade data collection infrastructure:
+- [**Data Collection System**](data-collection/README.md) - Enterprise weather data collection
+- **260+ million data points** - Massive-scale dataset foundation
+- **Global lake coverage** - 5,000+ lakes across all continents
+- **Professional tools** - Rate-limited, threaded collection scripts
+
 ## 📚 **Documentation**
 
 - [**Getting Started**](docs/getting-started.md) - Setup and basic usage

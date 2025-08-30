@@ -1,0 +1,22 @@
+# Kaayko Data Collection Requirements
+# ==================================
+
+# Core dependencies
+requests>=2.31.0
+pandas>=2.0.0
+pathlib
+
+# Performance and utilities  
+concurrent.futures
+threading
+json
+csv
+time
+datetime
+
+# Optional: Enhanced progress bars and logging
+rich>=13.0.0
+colorama>=0.4.6
+
+# For advanced geographic calculations
+geopy>=2.3.0
