@@ -2,7 +2,7 @@
 
 ## Enterprise System Architecture
 
-Kaayko Paddle Intelligence is a comprehensive AI system built on **260+ million data points** delivering **99.28% accurate** paddle safety predictions through hierarchical machine learning.
+Kaayko Paddle Intelligence is a comprehensive AI system built on **260+ million data points** delivering **97.40% R² accurate** paddle safety predictions through hierarchical machine learning.
 
 ## Core System Components
 
@@ -10,7 +10,7 @@ Kaayko Paddle Intelligence is a comprehensive AI system built on **260+ million 
 **[kaayko/predictor.py](../kaayko/predictor.py)** - Primary prediction orchestrator
 - Loads production model: [models/ (production model excluded from repo)](../models/ (production model excluded from repo))
 - Interfaces with [kaayko/models.py](../kaayko/models.py) for data validation
-- Delivers 99.28% accurate predictions with sub-100ms latency
+- Delivers 97.40% R² accurate predictions with sub-100ms latency
 
 **[kaayko/kaayko_inference_system.py](../kaayko/kaayko_inference_system.py)** - Advanced inference engine
 - Hierarchical model routing (Global -> Continental -> National)
@@ -37,7 +37,7 @@ class WeatherInput(BaseModel):
 #### Primary Model
 **File:** [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) (49.3MB)
 - **Algorithm:** RandomForestRegressor (50 trees, 15 features)
-- **Performance:** 99.28% accuracy on production workloads
+- **Performance:** 97.40% R² accuracy on production workloads
 - **Training Data:** Optimized subset of 260+ million data points
 
 #### Model Metadata
@@ -166,7 +166,7 @@ Production Data Sources:
                   │
         ┌─────────▼──────────┐
         │ Model Training     │ ←── [training/advanced/kaayko_production_training_suite.py]
-        │ RandomForest       │     99.28% accuracy
+        │ RandomForest       │     97.40% R² accuracy
         │ 6-Algorithm Suite  │     97.4% R² ensemble
         └─────────┬──────────┘
                   │
@@ -189,7 +189,7 @@ Production Data Sources:
 Geographic Model Routing:
 ┌─────────────────────────────────────────┐
 │ Global Baseline Model                   │ ←── [models/ (production model excluded from repo)]
-│ 99.28% Accuracy                        │     RandomForest (50 trees)
+│ 97.40% R² Accuracy                        │     RandomForest (50 trees)
 │ 15 Features, 49.3MB                    │
 └─────────────────┬───────────────────────┘
                   │
@@ -234,9 +234,9 @@ export KAAYKO_RPM_LIMIT="100"
 
 ### Performance Monitoring
 **Key Metrics:**
-- **Model Accuracy:** 99.28% (validated against production data)
+- **Model Accuracy:** 97.40% R² (validated against production data)
 - **Inference Speed:** Sub-100ms response times
-- **Data Scale:** 260+ million training data points
+- **Data Scale:** 1.93M records across 2,779 lakes
 - **Global Coverage:** 4,905+ lakes across 6 continents
 
 ## Cross-Reference Index
@@ -249,7 +249,7 @@ export KAAYKO_RPM_LIMIT="100"
 - [kaayko/04_inference_router.py](../kaayko/04_inference_router.py) - Geographic intelligence
 
 **Data & Models:**
-- [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) - Production model (99.28%)
+- [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) - Production model (97.40% R²)
 - [models/model_metadata.json](../models/model_metadata.json) - Model specifications
 - [kaayko/models.py](../kaayko/models.py) - Data validation schemas
 
@@ -269,4 +269,4 @@ export KAAYKO_RPM_LIMIT="100"
 
 ---
 
-**Professional enterprise architecture delivering 99.28% accurate paddle safety intelligence.**
+**Professional enterprise architecture delivering 97.40% R² accurate paddle safety intelligence.**

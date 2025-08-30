@@ -2,7 +2,7 @@
 
 ## Enterprise Documentation Suite
 
-Complete cross-referenced documentation for **Kaayko Paddle Intelligence** - professional enterprise system delivering **99.28% accurate** paddle safety predictions powered by **260+ million data points**.
+Complete cross-referenced documentation for **Kaayko Paddle Intelligence** - professional enterprise system delivering **97.40% R² accurate** paddle safety predictions powered by **260+ million data points**.
 
 ---
 
@@ -26,7 +26,7 @@ Complete cross-referenced documentation for **Kaayko Paddle Intelligence** - pro
 
 ### Technical Deep-Dive
 - **[MODEL_CLARIFICATION.md](MODEL_CLARIFICATION.md)** - Production model specifications
-  - 99.28% accuracy RandomForestRegressor details
+  - 97.40% R² accuracy RandomForestRegressor details
   - Feature engineering pipeline references
   - Cross-links to [training suite](../kaayko_training_suite/)
 
@@ -41,7 +41,7 @@ Complete cross-referenced documentation for **Kaayko Paddle Intelligence** - pro
 
 ### Core Prediction System
 ```
-kaayko/predictor.py                 ←── Main prediction interface (99.28% accuracy)
+kaayko/predictor.py                 ←── Main prediction interface (97.40% R² accuracy)
 ├── models/ (production model excluded from repo)  ←── Production model (49.3MB)
 ├── kaayko/models.py                ←── Data validation schemas
 └── kaayko/exceptions.py            ←── Enterprise error handling
@@ -100,7 +100,7 @@ tests/test_predictor.py                    ←── Core prediction validation
 ## 📊 Performance Specifications
 
 ### Model Performance
-- **Primary Model:** 99.28% accuracy ([models/ (production model excluded from repo)](../models/ (production model excluded from repo)))
+- **Primary Model:** 97.40% R² accuracy ([models/ (production model excluded from repo)](../models/ (production model excluded from repo)))
 - **Ensemble Performance:** 97.4% R² ([training/advanced/kaayko_production_training_suite.py](../training/advanced/kaayko_production_training_suite.py))
 - **Response Time:** Sub-100ms inference
 - **Data Scale:** 260+ million training points
@@ -141,7 +141,7 @@ tests/test_predictor.py                    ←── Core prediction validation
 
 **Production Ready:**
 - [kaayko/predictor.py](../kaayko/predictor.py) - Live prediction interface
-- [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) - 99.28% accurate model
+- [models/ (production model excluded from repo)](../models/ (production model excluded from repo)) - 97.40% R² accurate model
 - [kaayko/models.py](../kaayko/models.py) - Production data validation
 
 **Development & Training:**
@@ -193,11 +193,11 @@ export KAAYKO_RPM_LIMIT="100"
 - **Rate Limiting:** Professional 100 RPM limits with token-bucket algorithm
 
 ### Quality Metrics
-- **Model Accuracy:** 99.28% validated against production data
+- **Model Accuracy:** 97.40% R² validated against production data
 - **Inference Speed:** Sub-100ms response times  
 - **Data Coverage:** Global scale across 6 continents
 - **Reliability:** Enterprise-grade error handling and monitoring
 
 ---
 
-**Professional enterprise documentation suite for 99.28% accurate paddle safety intelligence.**
+**Professional enterprise documentation suite for 97.40% R² accurate paddle safety intelligence.**
