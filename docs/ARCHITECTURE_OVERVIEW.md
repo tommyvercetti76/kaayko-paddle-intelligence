@@ -58,13 +58,13 @@ class WeatherInput(BaseModel):
 **Directory:** [data-collection/](../data-collection/)
 
 **Main Collector:** [data-collection/scripts/kaaykokollect.py](../data-collection/scripts/kaaykokollect.py)
-- **API Integration:** WeatherAPI.com (https://weatherapi.com)
+- **API Integration:** WeatherAPI.com (https://api.weatherapi.com/v1/history.json)
 - **Rate Limiting:** 100 RPM with token-bucket algorithm
 - **Threading:** 12 concurrent threads (M1 Max optimized)
 - **Resume Capability:** Intelligent progress tracking
 
 **Global Lakes Generator:** [data-collection/scripts/generate_global_lakes.py](../data-collection/scripts/generate_global_lakes.py)
-- **Base Data:** PaddlingOut.com production endpoints (https://paddlingout.com)
+- **Base Data:** Kaayko Production API production endpoints (https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut)
 - **Expansion Algorithm:** Geographic distribution optimization
 - **Output:** 4,905+ globally distributed lakes
 
@@ -123,7 +123,7 @@ class ModelRouter:
 - Performance benchmarking
 
 **Production Validation:** [tests/test_model_real_paddlingout.py](../tests/test_model_real_paddlingout.py)
-- Validation against PaddlingOut.com live data
+- Validation against Kaayko Production API live data
 - Production endpoint testing
 - Real-world accuracy verification
 
@@ -144,13 +144,13 @@ class ModelRouter:
 ```
 Production Data Sources:
 ┌─────────────────────────────────┐
-│ PaddlingOut.com                 │ ←── Production endpoint
-│ https://paddlingout.com         │     (reference lake data)
+│ Kaayko Production API                 │ ←── Production endpoint
+│ https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut         │     (reference lake data)
 └─────────────────┬───────────────┘
                   │
 ┌─────────────────▼───────────────┐
 │ WeatherAPI.com                  │ ←── Professional data source
-│ https://weatherapi.com          │     (260M+ data points)
+│ https://api.weatherapi.com/v1/history.json          │     (260M+ data points)
 └─────────────────┬───────────────┘
                   │
         ┌─────────▼──────────┐
@@ -219,8 +219,8 @@ Geographic Model Routing:
 
 ### API Integration
 **Endpoint References:**
-- **Production Data Source:** https://paddlingout.com
-- **Weather Data Provider:** https://weatherapi.com  
+- **Production Data Source:** https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut
+- **Weather Data Provider:** https://api.weatherapi.com/v1/history.json  
 - **Model Serving:** [kaayko/predictor.py](../kaayko/predictor.py)
 
 ### Security & Configuration

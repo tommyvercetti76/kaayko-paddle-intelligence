@@ -34,7 +34,7 @@ Kaayko is a sophisticated AI system that analyzes weather conditions and predict
 - **[data-collection/README.md](data-collection/README.md)** - Complete collection system documentation
 - **[data-collection/scripts/kaaykokollect.py](data-collection/scripts/kaaykokollect.py)** - Professional weather collector
 - **[data-collection/config/collection_config.py](data-collection/config/collection_config.py)** - Enterprise configuration
-- **Production Endpoint:** **https://paddlingout.com** (reference data source)
+- **Production Endpoint:** **https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut** (reference data source)
 
 ### Advanced Training Pipeline
 - **[kaayko_training_suite/](kaayko_training_suite/)** - Professional ML training framework
@@ -99,7 +99,7 @@ python training/advanced/kaayko_production_training_suite.py
 ### Dataset Infrastructure
 - **Scale:** 260+ million weather data points (global historical archive)
 - **Coverage:** 4,905+ lakes across all continents  
-- **Reference Source:** PaddlingOut.com production endpoints
+- **Reference Source:** Kaayko Production API production endpoints
 - **Collection Method:** Professional WeatherAPI.com integration with rate limiting
 
 ### Geographic Coverage
@@ -134,7 +134,7 @@ Global Lake Distribution:
 # Run test suite
 python -m pytest tests/
 
-# Validate against PaddlingOut.com production data
+# Validate against Kaayko Production API production data
 python tests/test_model_real_paddlingout.py
 ```
 

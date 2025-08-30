@@ -11,7 +11,7 @@ Complete cross-referenced documentation for **Kaayko Paddle Intelligence** - pro
 ### System Overview
 - **[README.md](../README.md)** - Main system overview with complete architecture references
   - Links to [predictor.py](../kaayko/predictor.py), [data collection system](../data-collection/), [training suite](../kaayko_training_suite/)
-  - Production endpoints: https://paddlingout.com, https://weatherapi.com
+  - Production endpoints: https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut, https://api.weatherapi.com/v1/history.json
 
 - **[ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md)** - Comprehensive system architecture
   - Complete cross-reference index for all 19 Python files
@@ -82,11 +82,11 @@ tests/test_predictor.py                    ←── Core prediction validation
 ## 🌐 Production Integration
 
 ### API Endpoints
-- **Production Data Source:** https://paddlingout.com
+- **Production Data Source:** https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut
   - Referenced in [data-collection/scripts/generate_global_lakes.py](../data-collection/scripts/generate_global_lakes.py)
   - Validated in [tests/test_model_real_paddlingout.py](../tests/test_model_real_paddlingout.py)
 
-- **Weather Data Provider:** https://weatherapi.com
+- **Weather Data Provider:** https://api.weatherapi.com/v1/history.json
   - Configured in [data-collection/config/collection_config.py](../data-collection/config/collection_config.py)
   - Implemented in [data-collection/scripts/kaaykokollect.py](../data-collection/scripts/kaaykokollect.py)
 
@@ -171,7 +171,7 @@ tests/test_predictor.py                    ←── Core prediction validation
 
 ### Professional Integration
 - **API Configuration:** [kaayko/__init__.py](../kaayko/__init__.py)
-- **Production Endpoints:** https://paddlingout.com, https://weatherapi.com
+- **Production Endpoints:** https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut, https://api.weatherapi.com/v1/history.json
 - **Error Handling:** [kaayko/exceptions.py](../kaayko/exceptions.py)
 - **Performance Monitoring:** [models/model_metadata.json](../models/model_metadata.json)
 
@@ -188,8 +188,8 @@ export KAAYKO_RPM_LIMIT="100"
 ```
 
 ### Professional Data Sources
-- **PaddlingOut.com:** https://paddlingout.com (4,905+ reference lakes)
-- **WeatherAPI.com:** https://weatherapi.com (260+ million data points)
+- **Kaayko Production API:** https://us-central1-kaaykostore.cloudfunctions.net/api/paddlingOut (4,905+ reference lakes)
+- **WeatherAPI.com:** https://api.weatherapi.com/v1/history.json (260+ million data points)
 - **Rate Limiting:** Professional 100 RPM limits with token-bucket algorithm
 
 ### Quality Metrics
