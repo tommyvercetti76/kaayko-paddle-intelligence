@@ -1,0 +1,31 @@
+{
+  "model_name": "RandomForest",
+  "score": 0.99279335118509,
+  "feature_names": [
+    "temperature_c",
+    "wind_speed_kph",
+    "humidity",
+    "pressure_hpa",
+    "visibility_km",
+    "cloud_cover",
+    "precip_mm",
+    "uv",
+    "dew_point_c",
+    "feelslike_c",
+    "gust_kph",
+    "temp_comfort",
+    "wind_category",
+    "visibility_good",
+    "lake_encoded"
+  ],
+  "training_timestamp": "2025-08-24 22:42:14",
+  "system_info": {
+    "cpu_cores": 10,
+    "used_threads": 8,
+    "platform": "M1 Max"
+  },
+  "data_info": {
+    "training_approach": "Full dataset training (no splits)",
+    "feature_engineering": "Only available columns used"
+  }
+}

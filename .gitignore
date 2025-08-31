@@ -1,149 +1,69 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
+# Virtual environments
+.venv/
 venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# Kaayko specific
-data_out/
-logs/
-models/
-*.pkl
-*.parquet
-.DS_Store
+env/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
 
-# API keys and secrets
+# Kaayko specific
+data/
+logs/
+temp/
+*.log
+
+# Models (large files - keep only small essential ones)
+models/*.pkl  # Ignore all pickle files (most are too large for GitHub)
+!models/scaler.pkl  # Keep small scaler (2.7KB)
+models/*.joblib
+models/*.h5
+
+# Model metadata and docs are always tracked
+
+# Environment variables
+.env
 .env.local
 .env.production
-api_keys.txt
-.env
+
+# Data files (but allow essential model metadata)
+*.csv
+*.json
+!models/model_metadata.json  # Keep model specs
+*.xml
+*.parquet
+
+# Data collection outputs (but keep the tools and structure)
+data-collection/output/collected_data/*
+data-collection/output/coordinates/*
+data-collection/output/logs/*
+data-collection/output/temp/*
+!data-collection/output/collected_data/.gitkeep
+!data-collection/output/coordinates/.gitkeep
+!data-collection/output/logs/.gitkeep
+!data-collection/output/temp/.gitkeep
+
+# Prevent stray data files in scripts directory
+data-collection/scripts/data/
+data-collection/scripts/weather_data/
+data-collection/scripts/coordinates/
+data-collection/scripts/logs/
+data-collection/scripts/*.csv
+data-collection/scripts/launch_*.sh
+
+# Legacy data collection paths
+data-collection/collected_data/
+data-collection/outputs/
+data-collection/temp/
+
+# Archive
+archive/

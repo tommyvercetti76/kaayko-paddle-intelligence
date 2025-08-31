@@ -17,7 +17,7 @@
    ```
 4. **Install development dependencies**:
    ```bash
-   pip install -r requirements-dev.txt
+   pip install -r requirements.txt  # Unified file includes all dev tools
    ```
 
 ## 🛠️ Development Workflow
@@ -154,14 +154,14 @@ Use GitHub Issues with the "enhancement" label:
 
 ### Building Documentation
 ```bash
-# Install docs dependencies
-pip install -r requirements-dev.txt
+# All docs dependencies included in main requirements
+pip install -r requirements.txt
 
-# Serve docs locally
-mkdocs serve
+# Serve docs locally (if mkdocs is added to requirements)
+# mkdocs serve
 
-# Build documentation
-mkdocs build
+# Build documentation (if mkdocs is added to requirements)
+# mkdocs build
 ```
 
 ### Documentation Guidelines
