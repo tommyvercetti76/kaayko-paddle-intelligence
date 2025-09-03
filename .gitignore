@@ -22,48 +22,33 @@ logs/
 temp/
 *.log
 
-# Models (large files - keep only small essential ones)
-models/*.pkl  # Ignore all pickle files (most are too large for GitHub)
-!models/scaler.pkl  # Keep small scaler (2.7KB)
-models/*.joblib
+# Model artifacts and training data
+models/*.pkl
+models/*.joblib  
 models/*.h5
+models/backup_*/
+models/logs/
+*.parquet
+*.csv
 
-# Model metadata and docs are always tracked
+# Keep essential model metadata only
+!models/model_metadata.json
 
 # Environment variables
 .env
 .env.local
 .env.production
 
-# Data files (but allow essential model metadata)
-*.csv
-*.json
-!models/model_metadata.json  # Keep model specs
-*.xml
-*.parquet
+# Data collection (removed components)
+data-collection/
 
-# Data collection outputs (but keep the tools and structure)
-data-collection/output/collected_data/*
-data-collection/output/coordinates/*
-data-collection/output/logs/*
-data-collection/output/temp/*
-!data-collection/output/collected_data/.gitkeep
-!data-collection/output/coordinates/.gitkeep
-!data-collection/output/logs/.gitkeep
-!data-collection/output/temp/.gitkeep
+# Backup directories and cache
+backup_*/
+cache/
+checkpoints/
+sessions/
 
-# Prevent stray data files in scripts directory
-data-collection/scripts/data/
-data-collection/scripts/weather_data/
-data-collection/scripts/coordinates/
-data-collection/scripts/logs/
-data-collection/scripts/*.csv
-data-collection/scripts/launch_*.sh
-
-# Legacy data collection paths
-data-collection/collected_data/
-data-collection/outputs/
-data-collection/temp/
-
-# Archive
-archive/
+# Temporary analysis files
+*_comparison_*.json
+*_analysis_*.json
+detailed_live_comparison*.json
