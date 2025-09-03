@@ -156,36 +156,67 @@ class KaaykoTrainerSuperiorV3:
         # Check for cached configuration
         cached_config = self.cache_manager.offer_cached_config()
         if cached_config:
-            # Convert dict back to TrainingConfig
-            config = TrainingConfig()
-            for key, value in cached_config.items():
-                if hasattr(config, key):
-                    setattr(config, key, value)
-            return config
+            # Convert dict back to TrainingConfig using a dummy args object
+            import argparse
+            args = argparse.Namespace()
+            args.sample_size = cached_config.get('sample_size', 'small')
+            args.algorithm = cached_config.get('algorithm', 'histgradient')
+            args.score_quantization = cached_config.get('score_quantization', 'half_step')
+            args.safety_overrides = cached_config.get('safety_overrides', False)
+            args.confidence_metric = cached_config.get('confidence_metric', False)
+            args.localization = cached_config.get('localization', 'en-US')
+            args.resume = 'fresh'
+            args.smoke_test = False
+            args.models_root = 'models'
+            args.data_root = cached_config.get('data_root', '/Users/Rohan/data_lake_monthly')
+            args.sample_rows_for_search = 1000000
+            args.shard_size_rows = 100000
+            args.n_jobs = -1
+            args.save_csv = False
+            return TrainingConfig(args)
             
         print(f"\n{Colors.CYAN}⚙️  INTERACTIVE CONFIGURATION{Colors.RESET}")
         print("=" * 50)
         
         # Run standard interactive configuration
-        config = TrainingConfig()
+        import argparse
+        args = argparse.Namespace()
         
-        config.data_root = interactive_data_path_selection()
-        config.sample_size = interactive_sample_size_selection(config.data_root)
-        config.algorithm = interactive_algorithm_selection()
-        config.score_quantization = interactive_score_quantization()
-        config.safety_overrides = interactive_safety_overrides()
-        config.confidence_metric = interactive_confidence_metrics()
-        config.localization = interactive_localization()
+        data_root = interactive_data_path_selection()
+        sample_size = interactive_sample_size_selection(data_root)
+        algorithm = interactive_algorithm_selection()
+        score_quantization = interactive_score_quantization()
+        safety_overrides = interactive_safety_overrides()
+        confidence_metric = interactive_confidence_metrics()
+        localization = interactive_localization()
+        
+        # Set all required args attributes
+        args.data_root = data_root
+        args.sample_size = sample_size
+        args.algorithm = algorithm
+        args.score_quantization = score_quantization
+        args.safety_overrides = safety_overrides
+        args.confidence_metric = confidence_metric
+        args.localization = localization
+        args.resume = 'fresh'
+        args.smoke_test = False
+        args.models_root = 'models'
+        args.sample_rows_for_search = 1000000
+        args.shard_size_rows = 100000
+        args.n_jobs = -1
+        args.save_csv = False
+        
+        config = TrainingConfig(args)
         
         # Cache the configuration as dict
         config_dict = {
-            'data_root': config.data_root,
-            'sample_size': config.sample_size,
-            'algorithm': config.algorithm,
-            'score_quantization': config.score_quantization,
-            'safety_overrides': config.safety_overrides,
-            'confidence_metric': config.confidence_metric,
-            'localization': config.localization
+            'data_root': data_root,
+            'sample_size': sample_size,
+            'algorithm': algorithm,
+            'score_quantization': score_quantization,
+            'safety_overrides': safety_overrides,
+            'confidence_metric': confidence_metric,
+            'localization': localization
         }
         self.cache_manager.save_config_after_interactive(config_dict)
         
@@ -231,10 +262,24 @@ class KaaykoTrainerSuperiorV3:
         # Reconstruct training pipeline from checkpoint
         try:
             config_data = checkpoint_data.get('config', {})
-            config = TrainingConfig()
-            for key, value in config_data.items():
-                if hasattr(config, key):
-                    setattr(config, key, value)
+            import argparse
+            args = argparse.Namespace()
+            args.data_root = config_data.get('data_root', '/Users/Rohan/data_lake_monthly')
+            args.sample_size = config_data.get('sample_size', 'small')
+            args.algorithm = config_data.get('algorithm', 'histgradient')
+            args.score_quantization = config_data.get('score_quantization', 'half_step')
+            args.safety_overrides = config_data.get('safety_overrides', False)
+            args.confidence_metric = config_data.get('confidence_metric', False)
+            args.localization = config_data.get('localization', 'en-US')
+            args.resume = 'fresh'
+            args.smoke_test = False
+            args.models_root = 'models'
+            args.sample_rows_for_search = 1000000
+            args.shard_size_rows = 100000
+            args.n_jobs = -1
+            args.save_csv = False
+            
+            config = TrainingConfig(args)
             
             pipeline = TrainingPipeline(config)
             pipeline.set_interrupt_handler(self.interrupt_handler)
@@ -259,8 +304,8 @@ class KaaykoTrainerSuperiorV3:
             # Save initial checkpoint
             self.save_training_checkpoint(pipeline, "initialization", 0.0)
             
-            # Run the full training pipeline
-            results = pipeline.run_full_pipeline()
+            # Run the full training pipeline using the existing method
+            results = pipeline.train_model()
             
             # Mark as completed
             self.save_training_checkpoint(pipeline, "completed", 100.0)
@@ -308,14 +353,23 @@ class KaaykoTrainerSuperiorV3:
             if not pipeline:
                 if args.smoke_test:
                     print(f"\n{Colors.YELLOW}🧪 RUNNING SMOKE TEST{Colors.RESET}")
-                    config = TrainingConfig()
-                    config.data_root = '/Users/Rohan/data_lake_monthly'
-                    config.sample_size = 'tiny'
-                    config.algorithm = 'random_forest'
-                    config.score_quantization = 'none'
-                    config.safety_overrides = True
-                    config.confidence_metric = True
-                    config.localization = 'en-US'
+                    import argparse
+                    smoke_args = argparse.Namespace()
+                    smoke_args.data_root = '/Users/Rohan/data_lake_monthly'
+                    smoke_args.sample_size = 'tiny'
+                    smoke_args.algorithm = 'random_forest'
+                    smoke_args.score_quantization = 'half_step'
+                    smoke_args.safety_overrides = True
+                    smoke_args.confidence_metric = True
+                    smoke_args.localization = 'en-US'
+                    smoke_args.resume = 'fresh'
+                    smoke_args.smoke_test = True
+                    smoke_args.models_root = 'models'
+                    smoke_args.sample_rows_for_search = 1000000
+                    smoke_args.shard_size_rows = 100000
+                    smoke_args.n_jobs = -1
+                    smoke_args.save_csv = False
+                    config = TrainingConfig(smoke_args)
                 else:
                     config = self.interactive_configuration_with_caching()
                     

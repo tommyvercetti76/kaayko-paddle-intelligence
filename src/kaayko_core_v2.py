@@ -24,6 +24,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Iterator, Any
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 
 import pandas as pd
 import numpy as np
@@ -161,13 +163,12 @@ class AlgorithmFactory:
         return VotingRegressor(estimators=estimators)
 
 class AlgorithmEvaluator:
-    """Professional algorithm evaluation with timeout handling."""
+    """Professional algorithm evaluation with parallel processing."""
     
-    def __init__(self, config: TrainingConfig, timeout_seconds: int = 300):
+    def __init__(self, config: TrainingConfig):
         self.config = config
-        self.timeout_seconds = timeout_seconds
-        self.results = {}
-        self.interrupt_handler = None  # Will be set by TrainingPipeline
+        self.logger = logging.getLogger('kaayko_training')
+        self.interrupt_handler = None
     
     def _check_interrupt(self) -> bool:
         """Check for user interruption."""
@@ -175,28 +176,27 @@ class AlgorithmEvaluator:
             return True
         return False
     
-    def _timeout_handler(self, signum, frame):
-        raise TimeoutError(f"Algorithm evaluation timed out after {self.timeout_seconds} seconds")
-    
     def evaluate_single_algorithm(self, name: str, algorithm: Any, X: pd.DataFrame, 
                                 y: pd.Series, groups: np.ndarray) -> Dict[str, float]:
-        """Evaluate single algorithm with timeout protection."""
+        """Evaluate single algorithm with efficient processing."""
         try:
-            # Set timeout
-            old_handler = signal.signal(signal.SIGALRM, self._timeout_handler)
-            signal.alarm(self.timeout_seconds)
+            print(f"⏳ Training {name}...")
+            
+            # Check for interruption
+            if self.interrupt_handler and self.interrupt_handler.interrupted:
+                return {'r2_mean': 0.0, 'r2_std': 0.0, 'r2_scores': [], 'interrupted': True}
             
             # Create pipeline
             pipeline = Pipeline([
                 ('scaler', StandardScaler()),
-                ('selector', SelectKBest(mutual_info_regression, k=min(50, X.shape[1]))),  # Limit features for efficiency
+                ('selector', SelectKBest(mutual_info_regression, k=min(50, X.shape[1]))),
                 ('regressor', algorithm)
             ])
             
-            # Perform cross-validation
-            cv = GroupKFold(n_splits=3) if groups is not None else KFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
-            scores = cross_val_score(pipeline, X, y, cv=cv, groups=groups, scoring='r2', n_jobs=-2)  # Leave 2 cores free
-            rmse_scores = -cross_val_score(pipeline, X, y, cv=cv, groups=groups, scoring='neg_root_mean_squared_error', n_jobs=-2)  # Leave 2 cores free
+            # Perform cross-validation with reduced folds for speed
+            cv = GroupKFold(n_splits=2) if groups is not None else KFold(n_splits=2, shuffle=True, random_state=RANDOM_STATE)
+            scores = cross_val_score(pipeline, X, y, cv=cv, groups=groups, scoring='r2', n_jobs=2)
+            rmse_scores = -cross_val_score(pipeline, X, y, cv=cv, groups=groups, scoring='neg_root_mean_squared_error', n_jobs=2)
             
             result = {
                 'r2_mean': np.mean(scores),
@@ -206,24 +206,59 @@ class AlgorithmEvaluator:
                 'r2_scores': scores.tolist()
             }
             
-            # Clear timeout
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, old_handler)
-            
             return result
             
-        except TimeoutError:
-            # Clear timeout
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, old_handler)
-            print(f"  {Colors.YELLOW}⚠️ {name} timed out after {self.timeout_seconds}s, skipping...{Colors.RESET}")
-            return {'r2_mean': 0.0, 'r2_std': 0.0, 'r2_scores': [], 'timeout': True}
         except Exception as e:
-            # Clear timeout
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, old_handler)
             print(f"  {Colors.RED}❌ {name} failed: {str(e)}{Colors.RESET}")
             return {'r2_mean': 0.0, 'r2_std': 0.0, 'r2_scores': [], 'error': str(e)}
+
+    def _evaluate_algorithms_parallel(self, algorithms: Dict[str, Any], X: pd.DataFrame, 
+                                    y: pd.Series, groups: np.ndarray = None) -> Dict[str, Dict]:
+        """Evaluate algorithms in parallel using ThreadPoolExecutor."""
+        results = {}
+        
+        def train_single_algorithm(name_algo_pair):
+            name, algorithm = name_algo_pair
+            if algorithm is None:
+                return name, {'r2_mean': 0.0, 'r2_std': 0.0, 'r2_scores': [], 'error': 'Algorithm creation failed'}
+            
+            try:
+                start_time = time.time()
+                result = self.evaluate_single_algorithm(name, algorithm, X, y, groups)
+                end_time = time.time()
+                result['training_time'] = end_time - start_time
+                return name, result
+            except Exception as e:
+                return name, {'r2_mean': 0.0, 'r2_std': 0.0, 'r2_scores': [], 'error': str(e)}
+        
+        # Use ThreadPoolExecutor for I/O bound ML operations
+        with ThreadPoolExecutor(max_workers=min(3, len(algorithms))) as executor:
+            # Submit all algorithm training jobs
+            future_to_name = {
+                executor.submit(train_single_algorithm, (name, algo)): name 
+                for name, algo in algorithms.items() if algo is not None
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_name):
+                name = future_to_name[future]
+                try:
+                    algo_name, result = future.result()
+                    results[algo_name] = result
+                    
+                    # Print progress
+                    if 'error' in result:
+                        status = f"{Colors.RED}❌ ERROR{Colors.RESET}"
+                    else:
+                        r2_score = result['r2_mean']
+                        training_time = result.get('training_time', 0)
+                        status = f"{Colors.GREEN}✅ Complete ({training_time:.1f}s){Colors.RESET}"
+                        print(f"🏁 {algo_name}: {r2_score:.2%} R² {status}")
+                        
+                except Exception as e:
+                    results[name] = {'r2_mean': 0.0, 'r2_std': 0.0, 'r2_scores': [], 'error': str(e)}
+        
+        return results
     
     def evaluate_all_algorithms(self, X: pd.DataFrame, y: pd.Series, 
                                groups: np.ndarray = None) -> Dict[str, Dict]:
@@ -251,13 +286,11 @@ class AlgorithmEvaluator:
                 'XGBoost': self._create_xgboost_regressor(),
                 'HistGradientBoosting': AlgorithmFactory.create_algorithm('histgradient')
             }
-            self.timeout_seconds = 300  # 5 minutes for XGBoost on massive data
         elif len(X) > 5_000_000:  # Massive dataset, no XGBoost
             print(f"{Colors.YELLOW}⚡ MASSIVE DATASET DETECTED: Using HistGradientBoosting only{Colors.RESET}")
             algorithms = {
                 'HistGradientBoosting': AlgorithmFactory.create_algorithm('histgradient')
             }
-            self.timeout_seconds = 180  # 3 minutes max
         elif len(X) > 1_000_000:  # Large dataset
             algorithms = {
                 'HistGradientBoosting': AlgorithmFactory.create_algorithm('histgradient'),
@@ -265,8 +298,7 @@ class AlgorithmEvaluator:
             }
             if xgboost_available:
                 algorithms['XGBoost'] = self._create_xgboost_regressor()
-            self.timeout_seconds = 180  # 3 minutes max
-            print(f"{Colors.YELLOW}⚡ LARGE DATASET DETECTED: Using 3min timeout per algorithm{Colors.RESET}")
+            print(f"{Colors.YELLOW}⚡ LARGE DATASET DETECTED: Fast training mode{Colors.RESET}")
         else:
             # Full algorithm suite for smaller datasets
             algorithms = {
@@ -277,19 +309,33 @@ class AlgorithmEvaluator:
             }
             if xgboost_available:
                 algorithms['XGBoost'] = self._create_xgboost_regressor()
-            self.timeout_seconds = 300
         
         results = {}
         
-        for name, algorithm in algorithms.items():
-            if algorithm is None:  # Skip if XGBoost creation failed
-                continue
+        # Use parallel training for massive datasets
+        if len(X) > 5_000_000:
+            print(f"{Colors.CYAN}🚀 PARALLEL TRAINING MODE for {len(X):,} samples{Colors.RESET}")
+            results = self._evaluate_algorithms_parallel(algorithms, X, y, groups)
+        else:
+            # Sequential training for smaller datasets
+            for name, algorithm in algorithms.items():
+                if algorithm is None:  # Skip if XGBoost creation failed
+                    continue
+                    
+                if self.interrupt_handler and self.interrupt_handler.interrupted:
+                    print(f"\n{Colors.YELLOW}⚠️ Training interrupted by user{Colors.RESET}")
+                    break
                 
-            print(f"⏳ Testing {name}... ", end="", flush=True)
-            
-            result = self.evaluate_single_algorithm(name, algorithm, X, y, groups)
-            results[name] = result
-            
+                result = self.evaluate_single_algorithm(name, algorithm, X, y, groups)
+                results[name] = result
+
+        # Display results summary
+        print(f"\n{Colors.BOLD}📊 ALGORITHM PERFORMANCE SUMMARY{Colors.RESET}")
+        print("=" * 70)
+        print("Algorithm            R² Score    RMSE    Status")
+        print("-" * 70)
+        
+        for name, result in results.items():
             if 'timeout' in result:
                 status = f"{Colors.YELLOW}⏰ TIMEOUT{Colors.RESET}"
                 rmse_display = "N/A"
