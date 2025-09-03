@@ -20,7 +20,7 @@ Kaayko Superior Trainer v3.0 - Checkpoint-Enabled Training
 
 🚀 USAGE:
   python3 kaayko_trainer_superior_v3.py --sample-size small
-  python3 kaayko_trainer_superior_v3.py --resume
+  python3 kaayko_trainer_superior_v3.py --resume-checkpoint
   python3 kaayko_trainer_superior_v3.py --list-checkpoints
   python3 kaayko_trainer_superior_v3.py --cleanup-old
 
@@ -75,7 +75,7 @@ class KaaykoTrainerSuperiorV3:
         
         # Add checkpoint-specific arguments
         parser.add_argument(
-            '--resume', 
+            '--resume-checkpoint', 
             action='store_true',
             help='Resume from the most recent checkpoint'
         )
@@ -151,31 +151,45 @@ class KaaykoTrainerSuperiorV3:
                     
         return None
         
-    def interactive_configuration_with_caching(self) -> Dict[str, Any]:
+    def interactive_configuration_with_caching(self) -> TrainingConfig:
         """Enhanced interactive configuration with caching."""
         # Check for cached configuration
         cached_config = self.cache_manager.offer_cached_config()
         if cached_config:
-            return cached_config
+            # Convert dict back to TrainingConfig
+            config = TrainingConfig()
+            for key, value in cached_config.items():
+                if hasattr(config, key):
+                    setattr(config, key, value)
+            return config
             
         print(f"\n{Colors.CYAN}⚙️  INTERACTIVE CONFIGURATION{Colors.RESET}")
         print("=" * 50)
         
         # Run standard interactive configuration
-        config_dict = {}
+        config = TrainingConfig()
         
-        config_dict['data_root'] = interactive_data_path_selection()
-        config_dict['sample_size'] = interactive_sample_size_selection()
-        config_dict['algorithm'] = interactive_algorithm_selection()
-        config_dict['score_quantization'] = interactive_score_quantization()
-        config_dict['safety_overrides'] = interactive_safety_overrides()
-        config_dict['confidence_metric'] = interactive_confidence_metrics()
-        config_dict['localization'] = interactive_localization()
+        config.data_root = interactive_data_path_selection()
+        config.sample_size = interactive_sample_size_selection(config.data_root)
+        config.algorithm = interactive_algorithm_selection()
+        config.score_quantization = interactive_score_quantization()
+        config.safety_overrides = interactive_safety_overrides()
+        config.confidence_metric = interactive_confidence_metrics()
+        config.localization = interactive_localization()
         
-        # Cache the configuration
+        # Cache the configuration as dict
+        config_dict = {
+            'data_root': config.data_root,
+            'sample_size': config.sample_size,
+            'algorithm': config.algorithm,
+            'score_quantization': config.score_quantization,
+            'safety_overrides': config.safety_overrides,
+            'confidence_metric': config.confidence_metric,
+            'localization': config.localization
+        }
         self.cache_manager.save_config_after_interactive(config_dict)
         
-        return config_dict
+        return config
         
     def save_training_checkpoint(self, pipeline: TrainingPipeline, stage: str, progress: float):
         """Save training checkpoint."""
@@ -184,8 +198,15 @@ class KaaykoTrainerSuperiorV3:
             'stage': stage,
             'progress': progress,
             'timestamp': datetime.now().isoformat(),
-            'pipeline_state': pipeline.get_state() if hasattr(pipeline, 'get_state') else {},
-            'config': pipeline.config.__dict__ if hasattr(pipeline, 'config') else {}
+            'config': {
+                'data_root': pipeline.config.data_root,
+                'sample_size': pipeline.config.sample_size,
+                'algorithm': pipeline.config.algorithm,
+                'score_quantization': pipeline.config.score_quantization,
+                'safety_overrides': pipeline.config.safety_overrides,
+                'confidence_metric': pipeline.config.confidence_metric,
+                'localization': pipeline.config.localization
+            }
         }
         
         success = self.cache_manager.checkpoint_manager.save_training_checkpoint(checkpoint_data)
@@ -210,14 +231,13 @@ class KaaykoTrainerSuperiorV3:
         # Reconstruct training pipeline from checkpoint
         try:
             config_data = checkpoint_data.get('config', {})
-            config = TrainingConfig(**config_data)
+            config = TrainingConfig()
+            for key, value in config_data.items():
+                if hasattr(config, key):
+                    setattr(config, key, value)
             
             pipeline = TrainingPipeline(config)
-            
-            # Restore pipeline state if available
-            pipeline_state = checkpoint_data.get('pipeline_state', {})
-            if pipeline_state and hasattr(pipeline, 'restore_state'):
-                pipeline.restore_state(pipeline_state)
+            pipeline.set_interrupt_handler(self.interrupt_handler)
                 
             self.session_id = session_id
             return pipeline
@@ -239,27 +259,11 @@ class KaaykoTrainerSuperiorV3:
             # Save initial checkpoint
             self.save_training_checkpoint(pipeline, "initialization", 0.0)
             
-            # Data loading checkpoint
-            print(f"{Colors.YELLOW}📊 Loading and preprocessing data...{Colors.RESET}")
-            pipeline.load_and_preprocess_data()
-            self.save_training_checkpoint(pipeline, "data_loaded", 20.0)
+            # Run the full training pipeline
+            results = pipeline.run_full_pipeline()
             
-            # Feature engineering checkpoint  
-            print(f"{Colors.YELLOW}🔧 Engineering features...{Colors.RESET}")
-            pipeline.engineer_features()
-            self.save_training_checkpoint(pipeline, "features_engineered", 40.0)
-            
-            # Model training checkpoint
-            print(f"{Colors.YELLOW}🤖 Training models...{Colors.RESET}")
-            pipeline.train_models()
-            self.save_training_checkpoint(pipeline, "models_trained", 80.0)
-            
-            # Final evaluation and results
-            print(f"{Colors.YELLOW}📈 Evaluating and generating results...{Colors.RESET}")
-            results = pipeline.evaluate_and_report()
+            # Mark as completed
             self.save_training_checkpoint(pipeline, "completed", 100.0)
-            
-            # Mark session as completed
             self.cache_manager.checkpoint_manager.complete_training_session()
             
             print(f"\n{Colors.GREEN}✅ TRAINING COMPLETED WITH CHECKPOINTS{Colors.RESET}")
@@ -267,14 +271,12 @@ class KaaykoTrainerSuperiorV3:
             
         except KeyboardInterrupt:
             print(f"\n{Colors.YELLOW}⚠️  Training interrupted - checkpoint saved{Colors.RESET}")
-            current_progress = self.cache_manager.checkpoint_manager.get_current_progress()
-            self.save_training_checkpoint(pipeline, "interrupted", current_progress)
+            self.save_training_checkpoint(pipeline, "interrupted", 50.0)
             return None
             
         except Exception as e:
             print(f"\n{Colors.RED}❌ Training failed: {e}{Colors.RESET}")
-            current_progress = self.cache_manager.checkpoint_manager.get_current_progress() 
-            self.save_training_checkpoint(pipeline, "failed", current_progress)
+            self.save_training_checkpoint(pipeline, "failed", 25.0)
             raise
             
     def run(self):
@@ -297,7 +299,7 @@ class KaaykoTrainerSuperiorV3:
             pipeline = None
             
             # Check for resume capability
-            if args.resume:
+            if args.resume_checkpoint:
                 resumable_session = self.check_resume_capability()
                 if resumable_session:
                     pipeline = self.resume_from_checkpoint(resumable_session)
@@ -306,23 +308,22 @@ class KaaykoTrainerSuperiorV3:
             if not pipeline:
                 if args.smoke_test:
                     print(f"\n{Colors.YELLOW}🧪 RUNNING SMOKE TEST{Colors.RESET}")
-                    config_dict = {
-                        'data_root': '/Users/Rohan/data_lake_monthly',
-                        'sample_size': 'tiny',
-                        'algorithm': 'random_forest',
-                        'score_quantization': 'none',
-                        'safety_overrides': True,
-                        'confidence_metric': True,
-                        'localization': 'global'
-                    }
+                    config = TrainingConfig()
+                    config.data_root = '/Users/Rohan/data_lake_monthly'
+                    config.sample_size = 'tiny'
+                    config.algorithm = 'random_forest'
+                    config.score_quantization = 'none'
+                    config.safety_overrides = True
+                    config.confidence_metric = True
+                    config.localization = 'en-US'
                 else:
-                    config_dict = self.interactive_configuration_with_caching()
+                    config = self.interactive_configuration_with_caching()
                     
-                # Create configuration and pipeline
-                config = TrainingConfig.from_dict(config_dict)
+                # Display configuration and create pipeline
                 display_final_configuration(config)
                 
                 pipeline = TrainingPipeline(config)
+                pipeline.set_interrupt_handler(self.interrupt_handler)
                 
             # Run training with checkpoints
             results = self.run_training_with_checkpoints(pipeline, args.checkpoint_interval)
@@ -332,7 +333,7 @@ class KaaykoTrainerSuperiorV3:
                 print("Check the 'models/' directory for saved models and metrics.")
             else:
                 print(f"\n{Colors.YELLOW}⚠️  Training was interrupted or failed{Colors.RESET}")
-                print("Use --resume to continue from the last checkpoint.")
+                print("Use --resume-checkpoint to continue from the last checkpoint.")
                 
         except KeyboardInterrupt:
             print(f"\n{Colors.YELLOW}⚠️  Training interrupted by user{Colors.RESET}")
