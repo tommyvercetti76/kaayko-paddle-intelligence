@@ -59,82 +59,85 @@ class AlgorithmFactory:
     
     @staticmethod
     def create_algorithm(algorithm_type: str, **kwargs) -> Any:
-        """Create algorithm instance with proper configuration."""
-        # M1 Pro Max optimized algorithms - FULL ACCURACY maintained, smart parallelization
+        """Create algorithm instance with performance-boosting settings."""
+        perf_defaults = {
+            'n_estimators': kwargs.get('n_estimators', 80),
+            'max_depth': kwargs.get('max_depth', 8),
+            'n_jobs': kwargs.get('n_jobs', -1),
+        }
         algorithms = {
             'histgradient': HistGradientBoostingRegressor(
                 loss='squared_error',
-                learning_rate=0.05,        # Optimal learning rate for accuracy
-                max_iter=300,              # Full iterations for robustness
-                max_depth=12,              # Deeper for better patterns
+                learning_rate=0.05,
+                max_iter=kwargs.get('max_iter', 80),
+                max_depth=perf_defaults['max_depth'],
                 random_state=RANDOM_STATE,
                 early_stopping=True,
                 validation_fraction=0.1,
-                n_iter_no_change=25,       # Increased patience for stability
-                scoring='r2'
+                n_iter_no_change=10,
+                scoring='r2',
+                verbose=1
             ),
             'randomforest': RandomForestRegressor(
-                n_estimators=250,          # More estimators for robustness
-                max_depth=20,              # Deep enough for complex patterns
+                n_estimators=perf_defaults['n_estimators'],
+                max_depth=perf_defaults['max_depth'],
                 min_samples_split=5,
                 min_samples_leaf=2,
-                max_features='sqrt',       # Good balance of speed and accuracy
+                max_features='sqrt',
                 random_state=RANDOM_STATE,
-                n_jobs=-2,                 # Leave 2 cores free for system stability
-                warm_start=False
+                n_jobs=perf_defaults['n_jobs'],
+                warm_start=False,
+                verbose=1
             ),
             'extratrees': ExtraTreesRegressor(
-                n_estimators=250,          # More estimators for robustness
-                max_depth=20,              # Deep enough for complex patterns
+                n_estimators=perf_defaults['n_estimators'],
+                max_depth=perf_defaults['max_depth'],
                 min_samples_split=5,
                 min_samples_leaf=2,
-                max_features='sqrt',       # Good balance of speed and accuracy
+                max_features='sqrt',
                 random_state=RANDOM_STATE,
-                n_jobs=-2,                 # Leave 2 cores free for system stability
-                warm_start=False
+                n_jobs=perf_defaults['n_jobs'],
+                warm_start=False,
+                verbose=1
             ),
             'gradientboosting': GradientBoostingRegressor(
-                n_estimators=250,          # More estimators for robustness
-                learning_rate=0.08,        # Balanced learning rate
-                max_depth=10,              # Deep enough for patterns
+                n_estimators=perf_defaults['n_estimators'],
+                learning_rate=0.08,
+                max_depth=perf_defaults['max_depth'],
                 min_samples_split=5,
                 min_samples_leaf=2,
                 random_state=RANDOM_STATE,
                 validation_fraction=0.1,
-                n_iter_no_change=25,       # Increased patience for stability
-                subsample=0.95             # High subsample for accuracy
+                n_iter_no_change=10,
+                subsample=0.95,
+                verbose=1
             ),
-            'xgboost': AlgorithmFactory._create_xgboost_regressor()
+            'xgboost': AlgorithmFactory._create_xgboost_regressor(n_estimators=perf_defaults['n_estimators'], max_depth=perf_defaults['max_depth'], n_jobs=perf_defaults['n_jobs'])
         }
-        
         if algorithm_type not in algorithms:
             raise ValueError(f"Unknown algorithm: {algorithm_type}")
-        
         algorithm = algorithms[algorithm_type]
-        if algorithm is None:  # XGBoost not available
+        if algorithm is None:
             raise ValueError(f"XGBoost not available - install with 'pip install xgboost'")
-        
         return algorithm
     
     @staticmethod
-    def _create_xgboost_regressor():
-        """Create optimized XGBoost regressor for M1 Max."""
+    def _create_xgboost_regressor(n_estimators=80, max_depth=8, n_jobs=-1):
         try:
             import xgboost as xgb
             return xgb.XGBRegressor(
                 objective='reg:squarederror',
-                n_estimators=300,          # More estimators for robustness
-                max_depth=10,              # Deep enough for complex patterns
-                learning_rate=0.08,        # Balanced learning rate
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                learning_rate=0.08,
                 subsample=0.8,
                 colsample_bytree=0.8,
                 random_state=RANDOM_STATE,
-                tree_method='auto',        # Let XGBoost choose optimal method for M1
-                n_jobs=-1,                 # Use all cores for XGBoost
+                tree_method='auto',
+                n_jobs=n_jobs,
                 eval_metric='rmse',
-                verbosity=0,               # Suppress XGBoost warnings
-                # Remove early stopping for cross-validation compatibility
-                # early_stopping_rounds=25,  # This causes issues with CV without validation set
+                verbosity=1,
+                # Remove early_stopping_rounds for cross-validation compatibility
                 validate_parameters=True
             )
         except ImportError:
@@ -283,7 +286,7 @@ class AlgorithmEvaluator:
         if len(X) > 5_000_000 and xgboost_available:  # Massive dataset + XGBoost
             print(f"{Colors.GREEN}💪 MASSIVE DATASET + M1 OPTIMIZATION: Using XGBoost-focused approach{Colors.RESET}")
             algorithms = {
-                'XGBoost': self._create_xgboost_regressor(),
+                'XGBoost': AlgorithmFactory.create_algorithm('xgboost'),
                 'HistGradientBoosting': AlgorithmFactory.create_algorithm('histgradient')
             }
         elif len(X) > 5_000_000:  # Massive dataset, no XGBoost
@@ -297,7 +300,7 @@ class AlgorithmEvaluator:
                 'RandomForest': AlgorithmFactory.create_algorithm('randomforest')
             }
             if xgboost_available:
-                algorithms['XGBoost'] = self._create_xgboost_regressor()
+                algorithms['XGBoost'] = AlgorithmFactory.create_algorithm('xgboost')
             print(f"{Colors.YELLOW}⚡ LARGE DATASET DETECTED: Fast training mode{Colors.RESET}")
         else:
             # Full algorithm suite for smaller datasets
@@ -308,7 +311,7 @@ class AlgorithmEvaluator:
                 'GradientBoosting': AlgorithmFactory.create_algorithm('gradientboosting')
             }
             if xgboost_available:
-                algorithms['XGBoost'] = self._create_xgboost_regressor()
+                algorithms['XGBoost'] = AlgorithmFactory.create_algorithm('xgboost')
         
         results = {}
         
@@ -360,26 +363,6 @@ class AlgorithmEvaluator:
             print(f"{name:<20} {r2_display:<7} {rmse_display:<7} {status}")
         
         return results
-    
-    def _create_xgboost_regressor(self):
-        """Create optimized XGBoost regressor for M1 Max."""
-        try:
-            import xgboost as xgb
-            return xgb.XGBRegressor(
-                objective='reg:squarederror',
-                n_estimators=200,
-                max_depth=8,
-                learning_rate=0.1,
-                subsample=0.8,
-                colsample_bytree=0.8,
-                random_state=RANDOM_STATE,
-                tree_method='auto',  # Let XGBoost choose optimal method for M1
-                n_jobs=-1,
-                eval_metric='rmse',
-                verbosity=0  # Suppress XGBoost warnings
-            )
-        except ImportError:
-            return None
 
 # ============================================================================
 # FEATURE ENGINEERING
@@ -704,6 +687,31 @@ class DataProcessor:
     
     def load_massive_dataset(self) -> pd.DataFrame:
         """Load massive dataset with progress tracking."""
+        # Check for existing processed dataset first
+        parquet_file = 'src/kaayko_training_dataset.parquet'
+        if Path(parquet_file).exists():
+            file_age_hours = (time.time() - Path(parquet_file).stat().st_mtime) / 3600
+            # Allow data up to 7 days old (168 hours) for reuse
+            if file_age_hours < 168:  
+                print_header("♻️  LOADING CACHED DATASET")
+                print(f"📁 Found existing processed data: {parquet_file}")
+                print(f"🕒 File age: {file_age_hours:.1f} hours ({file_age_hours/24:.1f} days old)")
+                print(f"✅ Cache is valid (< 7 days)")
+                
+                try:
+                    df = pd.read_parquet(parquet_file)
+                    print(f"🚀 Loaded {len(df):,} samples from cached dataset")
+                    print(f"💾 Dataset size: {df.memory_usage(deep=True).sum() / (1024**3):.2f} GB")
+                    print(f"🎯 Skipping data collection - proceeding to training!")
+                    return df
+                except Exception as e:
+                    print(f"⚠️  Failed to load cached data: {e}")
+                    print("🔄 Proceeding with fresh data collection...")
+            else:
+                print(f"🔄 Cached data is {file_age_hours:.0f}h ({file_age_hours/24:.0f} days) old, refreshing...")
+        else:
+            print(f"📂 No cached data found at {parquet_file}")
+        
         print_header("📊 MASSIVE DATA LOADING")
         
         data_root = Path(self.config.data_root)
@@ -807,25 +815,28 @@ class DataProcessor:
     def _save_dataset(self, df: pd.DataFrame) -> None:
         """Save dataset in multiple formats."""
         try:
+            # Ensure src directory exists
+            Path('src').mkdir(exist_ok=True)
+            
             # Save as Parquet (more efficient)
-            df.to_parquet('kaayko_training_dataset.parquet', index=False)
-            parquet_size = os.path.getsize('kaayko_training_dataset.parquet') / (1024**3)
-            print(f"✅ Saved Parquet: kaayko_training_dataset.parquet")
+            df.to_parquet('src/kaayko_training_dataset.parquet', index=False)
+            parquet_size = os.path.getsize('src/kaayko_training_dataset.parquet') / (1024**3)
+            print(f"✅ Saved Parquet: src/kaayko_training_dataset.parquet")
         except Exception as e:
             self.logger.warning(f"Failed to save Parquet: {str(e)}")
             parquet_size = 0.0
         
         try:
             # Save as CSV (for compatibility)
-            df.to_csv('kaayko_training_dataset.csv', index=False)
-            csv_size = os.path.getsize('kaayko_training_dataset.csv') / (1024**3)
-            print(f"✅ Saved CSV: kaayko_training_dataset.csv")
+            df.to_csv('src/kaayko_training_dataset.csv', index=False)
+            csv_size = os.path.getsize('src/kaayko_training_dataset.csv') / (1024**3)
+            print(f"✅ Saved CSV: src/kaayko_training_dataset.csv")
         except Exception as e:
             self.logger.warning(f"Failed to save CSV: {str(e)}")
             csv_size = 0.0
         
-        print(f"💾 kaayko_training_dataset.parquet: {parquet_size:.2f} GB")
-        print(f"💾 kaayko_training_dataset.csv: {csv_size:.2f} GB")
+        print(f"💾 src/kaayko_training_dataset.parquet: {parquet_size:.2f} GB")
+        print(f"💾 src/kaayko_training_dataset.csv: {csv_size:.2f} GB")
 
 # ============================================================================
 # TRAINING PIPELINE
@@ -856,18 +867,18 @@ class TrainingPipeline:
         self.data_processor.interrupt_handler = interrupt_handler
         
     def create_pipeline(self) -> Pipeline:
-        """Create ML pipeline based on configuration."""
+        """Create ML pipeline for training with feature selection."""
+        # Feature selection: use top N features for speed
+        top_k = 25
         if self.config.algorithm == 'ensemble':
             regressor = AlgorithmFactory.create_ensemble()
         else:
             regressor = AlgorithmFactory.create_algorithm(self.config.algorithm)
-        
         pipeline = Pipeline([
             ('scaler', StandardScaler()),
-            ('selector', SelectKBest(mutual_info_regression, k='all')),
+            ('selector', SelectKBest(mutual_info_regression, k=top_k)),
             ('regressor', regressor)
         ])
-        
         return pipeline
     
     def prepare_training_data(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series, np.ndarray]:
@@ -950,7 +961,7 @@ class TrainingPipeline:
         else:
             # Individual algorithm parameters - focused on best performers
             param_dist = {
-                'selector__k': ['all', 75]                                # Focus on proven values
+                'selector__k': [25, 50]  # Fix selector k to avoid warning
             }
             
             if self.config.algorithm == 'histgradient':
@@ -965,6 +976,17 @@ class TrainingPipeline:
                     'regressor__learning_rate': [0.05, 0.08, 0.1],       # Learning rate options
                     'regressor__subsample': [0.8, 0.9],                  # Subsampling ratios
                     'regressor__colsample_bytree': [0.8, 0.9]             # Feature subsampling
+                })
+            elif self.config.algorithm in ['randomforest', 'extratrees']:
+                param_dist.update({
+                    'regressor__n_estimators': [80, 120, 160],
+                    'regressor__max_depth': [6, 8, 10]
+                })
+            elif self.config.algorithm == 'gradientboosting':
+                param_dist.update({
+                    'regressor__n_estimators': [80, 120, 160],
+                    'regressor__max_depth': [6, 8, 10],
+                    'regressor__learning_rate': [0.05, 0.08, 0.1]
                 })
         
         # FAST CV: 2-fold instead of 3-fold for speed without major accuracy loss
@@ -982,7 +1004,7 @@ class TrainingPipeline:
         )
         
         try:
-            search.fit(X, y, groups=groups)
+            search.fit(X_search, y_search, groups=groups_search)
             print(f"{Colors.GREEN}✅ Best hyperparameter score: {search.best_score_:.4f}{Colors.RESET}")
         except KeyboardInterrupt:
             if self.interrupt_handler:
@@ -1018,73 +1040,67 @@ class TrainingPipeline:
         return metrics
     
     def train_model(self) -> Dict[str, Any]:
-        """Main training pipeline."""
+        """Main training pipeline with performance optimizations."""
         try:
             print_header("🚀 KAAYKO SUPERIOR TRAINER V2.0")
-            
             # Check for early interruption
             if self._check_interrupt():
                 return {'status': 'interrupted', 'stage': 'startup'}
-            
             # Load and process data
             if self.config.smoke_test:
                 df = self._generate_synthetic_data()
             else:
                 df = self.data_processor.load_massive_dataset()
-            
             if df.empty or self._check_interrupt():
                 if self._check_interrupt():
                     return {'status': 'interrupted', 'stage': 'data_loading'}
                 raise ValueError("No data loaded")
-            
             # Feature engineering
             print_header("⚙️ ADVANCED FEATURE ENGINEERING")
             processed_df = self.data_processor.feature_engineer.process_features(df)
-            
             if self._check_interrupt():
                 return {'status': 'interrupted', 'stage': 'feature_engineering'}
-            
             # Prepare training data
             X, y, groups = self.prepare_training_data(processed_df)
-            
-            print_header("🔍 HYPERPARAMETER OPTIMIZATION")
-            print(f"📊 Sampling {min(len(X), self.config.sample_rows_for_search):,} rows for hyperparameter search")
-            
-            # Sample for hyperparameter search
-            if len(X) > self.config.sample_rows_for_search:
-                sample_idx = np.random.choice(len(X), self.config.sample_rows_for_search, replace=False)
-                X_sample, y_sample = X.iloc[sample_idx], y.iloc[sample_idx]
-                groups_sample = groups[sample_idx] if groups is not None else None
+            # SMART SAMPLING: Use a subset for quick training if dataset is huge
+            max_train_rows = 300_000
+            if len(X) > max_train_rows:
+                print(f"{Colors.YELLOW}⚡ Using a random sample of {max_train_rows:,} rows for fast training (full data: {len(X):,}){Colors.RESET}")
+                sample_idx = np.random.choice(len(X), max_train_rows, replace=False)
+                X_train, y_train = X.iloc[sample_idx], y.iloc[sample_idx]
+                groups_train = groups[sample_idx] if groups is not None else None
             else:
-                X_sample, y_sample, groups_sample = X, y, groups
-            
+                X_train, y_train, groups_train = X, y, groups
+            print_header("🔍 HYPERPARAMETER OPTIMIZATION")
+            print(f"📊 Sampling {min(len(X_train), self.config.sample_rows_for_search):,} rows for hyperparameter search")
+            # Sample for hyperparameter search
+            if len(X_train) > self.config.sample_rows_for_search:
+                sample_idx = np.random.choice(len(X_train), self.config.sample_rows_for_search, replace=False)
+                X_sample, y_sample = X_train.iloc[sample_idx], y_train.iloc[sample_idx]
+                groups_sample = groups_train[sample_idx] if groups_train is not None else None
+            else:
+                X_sample, y_sample, groups_sample = X_train, y_train, groups_train
             # Individual algorithm comparison (only for ensemble or explicit request)
             if self.config.algorithm == 'ensemble':
                 algorithm_results = self.algorithm_evaluator.evaluate_all_algorithms(X_sample, y_sample, groups_sample)
-            
             # Create and optimize pipeline
             pipeline = self.create_pipeline()
             best_pipeline = self.hyperparameter_search(pipeline, X_sample, y_sample, groups_sample)
-            
             # Final training and evaluation
             print_header("🎯 FINAL MODEL TRAINING")
-            print(f"{Colors.GREEN}📊 Training final model on {len(X):,} samples{Colors.RESET}")
-            
-            best_pipeline.fit(X, y)
-            final_metrics = self.evaluate_pipeline(best_pipeline, X, y, groups)
-            
+            print(f"{Colors.GREEN}📊 Training final model on {len(X_train):,} samples{Colors.RESET}")
+            best_pipeline.fit(X_train, y_train)
+            final_metrics = self.evaluate_pipeline(best_pipeline, X_train, y_train, groups_train)
             # Save model
             model_path = self.config.models_root / f"kaayko_model_v2_{self.config.algorithm}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
             model_path.parent.mkdir(parents=True, exist_ok=True)
             joblib.dump(best_pipeline, model_path)
-            
             return {
                 'status': 'success',
                 'metrics': final_metrics,
                 'model_path': str(model_path),
                 'config': self.config.to_dict()
             }
-            
         except Exception as e:
             self.logger.error(f"Training failed: {str(e)}", exc_info=True)
             return {

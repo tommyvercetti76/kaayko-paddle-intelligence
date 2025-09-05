@@ -222,8 +222,8 @@ class KaaykoTrainerSuperiorV3:
         
         return config
         
-    def save_training_checkpoint(self, pipeline: TrainingPipeline, stage: str, progress: float):
-        """Save training checkpoint."""
+    def save_training_checkpoint(self, pipeline: TrainingPipeline, stage: str, progress: float, data_path: str = None):
+        """Save training checkpoint with processed data."""
         checkpoint_data = {
             'session_id': self.session_id,
             'stage': stage,
@@ -240,9 +240,15 @@ class KaaykoTrainerSuperiorV3:
             }
         }
         
+        # Save processed data path if available
+        if data_path:
+            checkpoint_data['processed_data_path'] = data_path
+            
         success = self.cache_manager.checkpoint_manager.save_training_checkpoint(checkpoint_data)
         if success:
             self.logger.info(f"Checkpoint saved: {stage} ({progress:.1f}% complete)")
+            if data_path:
+                self.logger.info(f"Processed data saved: {data_path}")
         
     def resume_from_checkpoint(self, session_info: Dict[str, Any]) -> Optional[TrainingPipeline]:
         """Resume training from checkpoint."""
@@ -292,7 +298,7 @@ class KaaykoTrainerSuperiorV3:
             return None
             
     def run_training_with_checkpoints(self, pipeline: TrainingPipeline, checkpoint_interval: int = 50):
-        """Run training with checkpoint saving."""
+        """Run training with intelligent data checkpoint saving."""
         print(f"\n{Colors.CYAN}🚀 STARTING CHECKPOINT-ENABLED TRAINING{Colors.RESET}")
         print("=" * 60)
         
@@ -300,15 +306,31 @@ class KaaykoTrainerSuperiorV3:
         if not self.session_id:
             self.session_id = self.cache_manager.checkpoint_manager.start_training_session()
             
+        # Check if we have processed data already
+        processed_data_file = "src/kaayko_training_dataset.parquet"
+        
         try:
             # Save initial checkpoint
             self.save_training_checkpoint(pipeline, "initialization", 0.0)
             
-            # Run the full training pipeline using the existing method
+            # Smart data loading - check for existing processed data
+            if Path(processed_data_file).exists():
+                file_age_hours = (time.time() - Path(processed_data_file).stat().st_mtime) / 3600
+                if file_age_hours < 24:  # Data is fresh (less than 24 hours)
+                    print(f"\n{Colors.GREEN}♻️  USING EXISTING PROCESSED DATA{Colors.RESET}")
+                    print(f"📁 Found: {processed_data_file} ({file_age_hours:.1f}h old)")
+                    self.save_training_checkpoint(pipeline, "data_loaded_from_cache", 50.0, processed_data_file)
+                    
+                    # Skip data processing, go straight to training
+                    print(f"\n{Colors.BLUE}🚀 SKIPPING DATA COLLECTION - TRAINING DIRECTLY{Colors.RESET}")
+                else:
+                    print(f"\n{Colors.YELLOW}🔄 REFRESHING DATA (>{file_age_hours:.0f}h old){Colors.RESET}")
+                    
+            # Run training (will collect data if needed)
             results = pipeline.train_model()
             
-            # Mark as completed
-            self.save_training_checkpoint(pipeline, "completed", 100.0)
+            # Save final checkpoint with data location
+            self.save_training_checkpoint(pipeline, "completed", 100.0, processed_data_file)
             self.cache_manager.checkpoint_manager.complete_training_session()
             
             print(f"\n{Colors.GREEN}✅ TRAINING COMPLETED WITH CHECKPOINTS{Colors.RESET}")
